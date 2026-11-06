@@ -6,11 +6,13 @@ import {
   DashboardRequestError,
   formatUpdateNotice,
   formatCount,
+  formatTokens,
   formatPercent,
   initialDashboardState,
   REFRESH_INTERVAL_MS,
   reduceDashboardState,
   snapshotNotices,
+  serviceStatusLabel,
   type DashboardSnapshot,
 } from "./dashboard";
 
@@ -29,6 +31,19 @@ describe("dashboard panel state", () => {
   it("formats counts and percentages", () => {
     expect(formatCount(12345)).toBe("12,345");
     expect(formatPercent(66.67)).toBe("66.7%");
+  });
+
+  it("formats large token counts compactly", () => {
+    expect(formatTokens(1_140_000)).toBe("1.14M");
+    expect(formatTokens(144_700)).toBe("144.7k");
+    expect(formatTokens(842)).toBe("842");
+  });
+
+  it("labels each host service lifecycle state", () => {
+    expect(serviceStatusLabel("ready")).toBe("Service is running");
+    expect(serviceStatusLabel("starting")).toBe("Service is starting");
+    expect(serviceStatusLabel("stopped")).toBe("Service is stopped");
+    expect(serviceStatusLabel("failed")).toBe("Service failed");
   });
 
   it("keeps a valid snapshot and marks it stale after refresh failure", () => {

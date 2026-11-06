@@ -1,5 +1,14 @@
 export const REFRESH_INTERVAL_MS = 30_000;
 
+export type ServiceStatus = "stopped" | "starting" | "ready" | "failed";
+
+export function serviceStatusLabel(status: ServiceStatus): string {
+  return status === "ready" ? "Service is running"
+    : status === "starting" ? "Service is starting"
+      : status === "failed" ? "Service failed"
+        : "Service is stopped";
+}
+
 export type DashboardSnapshot = {
   operations: number;
   tokens_before: number;
@@ -156,6 +165,12 @@ export function createDashboardClient(
 
 export function formatCount(value: number): string {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+}
+
+export function formatTokens(value: number): string {
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 })
+    .format(value)
+    .replace("K", "k");
 }
 
 export function formatPercent(value: number): string {
