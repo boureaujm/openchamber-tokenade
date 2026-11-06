@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tokenade</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 16px; background: var(--surface-background, var(--oc-bg, transparent)); color: var(--surface-foreground, var(--oc-fg, inherit)); font: 0.875rem/1.45 var(--font-sans, var(--oc-font, system-ui, sans-serif)); }
+      button { color: inherit; font: inherit; }
+      .dashboard { width: min(100%, 820px); margin: 0 auto; }
+      .dashboard-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      h1 { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+      .subtitle, .muted { margin: 4px 0 0; color: var(--surface-muted-foreground, var(--oc-muted, #777)); }
+      .refresh { flex: 0 0 auto; border: 1px solid var(--interactive-border, var(--oc-border, currentColor)); border-radius: var(--radius, var(--oc-radius, 8px)); padding: 7px 11px; background: var(--surface-elevated, var(--oc-elevated, transparent)); cursor: pointer; }
+      .refresh:hover:not(:disabled) { background: var(--interactive-hover, var(--oc-hover, transparent)); }
+      .refresh:focus-visible { outline: 2px solid var(--interactive-focus-ring, var(--oc-focus, currentColor)); outline-offset: 2px; }
+      .refresh:disabled { opacity: .6; cursor: wait; }
+      .privilege { margin: 0 0 14px; padding: 9px 11px; border-inline-start: 3px solid var(--status-warning, var(--oc-warning, #b7791f)); background: var(--surface-elevated, var(--oc-elevated, transparent)); color: var(--surface-muted-foreground, var(--oc-muted, inherit)); font-size: .8rem; }
+      .notice, .stale { margin: 8px 0; padding: 9px 11px; border-radius: var(--radius, var(--oc-radius, 8px)); background: var(--surface-elevated, var(--oc-elevated, transparent)); }
+      .updated { margin: 8px 0; color: var(--surface-muted-foreground, var(--oc-muted, #777)); font-size: .76rem; }
+      .notice.error { color: var(--status-error, var(--oc-error, #b42318)); }
+      .notice.warning, .stale { color: var(--status-warning, var(--oc-warning, #9a6700)); }
+      .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .metric { min-width: 0; padding: 11px; border: 1px solid var(--interactive-border, var(--oc-border, currentColor)); border-radius: var(--radius, var(--oc-radius, 8px)); background: var(--surface-elevated, var(--oc-elevated, transparent)); }
+      .metric-label { display: block; color: var(--surface-muted-foreground, var(--oc-muted, #777)); font-size: .76rem; }
+      .metric-value { display: block; margin-top: 5px; overflow-wrap: anywhere; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+      .breakdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; margin-top: 14px; }
+      .breakdown { min-width: 0; padding: 12px; border: 1px solid var(--interactive-border, var(--oc-border, currentColor)); border-radius: var(--radius, var(--oc-radius, 8px)); }
+      h2 { margin: 0 0 8px; font-size: .95rem; }
+      .breakdown-list { margin: 0; padding: 0; list-style: none; }
+      .breakdown-row { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-top: 1px solid var(--interactive-border, var(--oc-border, currentColor)); }
+      .breakdown-name { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+      .breakdown-values { color: var(--surface-muted-foreground, var(--oc-muted, #777)); text-align: right; font-size: .78rem; font-variant-numeric: tabular-nums; }
+      @media (max-width: 360px) { body { padding: 12px; } .summary { gap: 6px; } .metric { padding: 9px; } .breakdown-row { display: block; } .breakdown-values { display: block; text-align: left; margin-top: 3px; } }
+    </style>
+  </head>
+  <body>
+    <main id="app" aria-label="Tokenade"></main>
+    <script src="./main.js"></script>
+  </body>
+</html>
