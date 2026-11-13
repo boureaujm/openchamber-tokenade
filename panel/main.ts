@@ -56,13 +56,13 @@ function mountDashboard(container: HTMLElement): void {
   const mark = element("span", "brand-mark");
   mark.append(markIcon());
   const heading = element("div", "heading");
-  heading.append(element("h1", undefined, "Tokenade"), element("p", "subtitle", "Économies locales enregistrées"));
+  heading.append(element("h1", undefined, "Tokenade"), element("p", "subtitle", "Locally recorded savings"));
   brand.append(mark, heading);
   const actions = element("div", "header-actions");
   const refresh = element("button", "refresh");
-  const refreshLabel = element("span", undefined, "Actualiser");
+  const refreshLabel = element("span", undefined, "Refresh");
   refresh.type = "button";
-  refresh.setAttribute("aria-label", "Actualiser le dashboard");
+  refresh.setAttribute("aria-label", "Refresh dashboard");
   refresh.append(refreshIcon(), refreshLabel);
   const serviceStatus = element("div", "service-status");
   const serviceStatusDot = element("span", "service-status-dot");
@@ -72,11 +72,11 @@ function mountDashboard(container: HTMLElement): void {
   serviceStatus.append(serviceStatusDot, serviceStatusText);
   actions.append(serviceStatus, refresh);
   header.append(brand, actions);
-  const privilege = element("aside", "privilege", "Le service local utilise les droits de votre compte. Sa permission « tokenade » est indicative, pas une sandbox système.");
+  const privilege = element("aside", "privilege", "The local service runs with your account permissions. Its “tokenade” permission is informational, not a system sandbox.");
   const status = element("div", "status");
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
-  const loadingNotice = element("p", "notice", "Chargement du snapshot Tokenade…");
+  const loadingNotice = element("p", "notice", "Loading the Tokenade snapshot…");
   loadingNotice.dataset.status = "loading";
   loadingNotice.hidden = true;
   const errorNotice = element("p", "notice");
@@ -85,16 +85,16 @@ function mountDashboard(container: HTMLElement): void {
   const updateNotice = element("p", "updated");
   updateNotice.dataset.status = "updated";
   updateNotice.hidden = true;
-  const activityNotice = element("p", "notice", "Aucune opération enregistrée pour l’instant.");
+  const activityNotice = element("p", "notice", "No operations have been recorded yet.");
   activityNotice.dataset.status = "activity";
   activityNotice.hidden = true;
-  const breakdownNotice = element("p", "notice", "Aucun détail par couche ou opération dans ce snapshot.");
+  const breakdownNotice = element("p", "notice", "No layer or operation details in this snapshot.");
   breakdownNotice.dataset.status = "breakdown";
   breakdownNotice.hidden = true;
   status.hidden = true;
   status.append(loadingNotice, errorNotice, updateNotice, activityNotice, breakdownNotice);
   const overview = element("section", "overview");
-  overview.setAttribute("aria-label", "Économies Tokenade");
+  overview.setAttribute("aria-label", "Tokenade savings");
   const summary = element("section", "summary");
   summary.setAttribute("aria-label", "Indicateurs Tokenade");
   const breakdowns = element("section", "breakdowns");
@@ -185,10 +185,10 @@ function savingsRing(value: number): SVGSVGElement {
   return svg;
 }
 
-function metric(label: string, value: string): HTMLElement {
+function metric(key: string, label: string, value: string): HTMLElement {
   const card = element("article", "metric");
   const number = element("strong", "metric-value", value);
-  number.dataset.value = label;
+  number.dataset.value = key;
   card.append(element("span", "metric-label", label), number);
   return card;
 }
@@ -234,13 +234,13 @@ function renderState(
     const savingsCopy = element("div", "hero-copy");
     const savedValue = element("strong", "hero-value", formatTokens(data.tokens_saved));
     savedValue.dataset.value = "tokens_saved";
-    savingsCopy.append(element("span", "eyebrow", "Tokens économisés"), savedValue);
+    savingsCopy.append(element("span", "eyebrow", "Tokens saved"), savedValue);
     const comparison = element("p", "hero-comparison");
     const before = element("span", "comparison-value", formatTokens(data.tokens_before));
     before.dataset.value = "tokens_before";
     const after = element("span", "comparison-value", formatTokens(data.tokens_after));
     after.dataset.value = "tokens_after";
-    comparison.append(before, element("span", "comparison-arrow", "→"), after, element("span", "comparison-caption", "tokens avant / après compaction"));
+    comparison.append(before, element("span", "comparison-arrow", "→"), after, element("span", "comparison-caption", "tokens before / after compaction"));
     savings.append(savingsCopy, comparison);
 
     const rate = element("article", "hero-card hero-rate");
@@ -248,33 +248,33 @@ function renderState(
     ring.setAttribute("role", "img");
     ring.append(savingsRing(data.savings_pct), element("span", "ring-label", `${format(data.savings_pct)}%`));
     const rateCopy = element("div", "hero-copy");
-    rateCopy.append(element("span", "eyebrow", "Taux d’économies"), element("p", "rate-caption", "sur les tokens mesurés"));
+    rateCopy.append(element("span", "eyebrow", "Savings rate"), element("p", "rate-caption", "of measured tokens"));
     rate.append(ring, rateCopy);
     overview.append(savings, rate);
 
     summary.append(
-      metric("Opérations", format(data.operations)),
-      metric("Tokens avant", formatTokens(data.tokens_before)),
-      metric("Tokens après", formatTokens(data.tokens_after)),
-      metric("Cache hits", format(data.cache_hits)),
-      metric("Cache misses", format(data.cache_misses)),
-      metric("Hit rate", `${format(data.hit_rate)}%`),
+    metric("operations", "Operations", format(data.operations)),
+    metric("tokens_before", "Tokens before", formatTokens(data.tokens_before)),
+    metric("tokens_after", "Tokens after", formatTokens(data.tokens_after)),
+    metric("cache_hits", "Cache hits", format(data.cache_hits)),
+    metric("cache_misses", "Cache misses", format(data.cache_misses)),
+    metric("hit_rate", "Hit rate", `${format(data.hit_rate)}%`),
     );
   }
   updateValue(overview, "tokens_saved", formatTokens(data.tokens_saved));
   updateValue(overview, "tokens_before", formatTokens(data.tokens_before));
   updateValue(overview, "tokens_after", formatTokens(data.tokens_after));
   updateSavingsRing(overview.querySelector<HTMLElement>(".savings-ring"), data.savings_pct);
-  updateValue(summary, "Opérations", format(data.operations));
-  updateValue(summary, "Tokens avant", formatTokens(data.tokens_before));
-  updateValue(summary, "Tokens après", formatTokens(data.tokens_after));
-  updateValue(summary, "Cache hits", format(data.cache_hits));
-  updateValue(summary, "Cache misses", format(data.cache_misses));
-  updateValue(summary, "Hit rate", `${format(data.hit_rate)}%`);
+  updateValue(summary, "operations", format(data.operations));
+  updateValue(summary, "tokens_before", formatTokens(data.tokens_before));
+  updateValue(summary, "tokens_after", formatTokens(data.tokens_after));
+  updateValue(summary, "cache_hits", format(data.cache_hits));
+  updateValue(summary, "cache_misses", format(data.cache_misses));
+  updateValue(summary, "hit_rate", `${format(data.hit_rate)}%`);
   if (snapshotChanged) {
     breakdowns.replaceChildren();
-    if (data.by_layer?.length) breakdowns.append(renderBreakdown("Par couche", data.by_layer.map((row) => ({ name: row.layer, detail: `${format(row.n)} · ${formatTokens(row.saved)} tokens · ${format(row.pct)}%`, pct: row.pct }))));
-    if (data.per_op?.length) breakdowns.append(renderBreakdown("Par opération", data.per_op.map((row) => ({ name: row.op, detail: `${format(row.n)} · ${formatTokens(row.before)} → ${formatTokens(row.after)} tokens · ${format(row.pct)}%`, pct: row.pct }))));
+    if (data.by_layer?.length) breakdowns.append(renderBreakdown("By layer", data.by_layer.map((row) => ({ name: row.layer, detail: `${format(row.n)} · ${formatTokens(row.saved)} tokens · ${format(row.pct)}%`, pct: row.pct }))));
+    if (data.per_op?.length) breakdowns.append(renderBreakdown("By operation", data.per_op.map((row) => ({ name: row.op, detail: `${format(row.n)} · ${formatTokens(row.before)} → ${formatTokens(row.after)} tokens · ${format(row.pct)}%`, pct: row.pct }))));
   }
 }
 
@@ -285,7 +285,7 @@ function updateValue(root: HTMLElement, key: string, value: string): void {
 
 function updateSavingsRing(ring: HTMLElement | null, value: number): void {
   if (!ring) return;
-  const ariaLabel = `${format(value)}% de tokens économisés`;
+  const ariaLabel = `${format(value)}% of tokens saved`;
   if (ring.getAttribute("aria-label") !== ariaLabel) ring.setAttribute("aria-label", ariaLabel);
   const label = ring.querySelector<HTMLElement>(".ring-label");
   const labelText = `${format(value)}%`;
@@ -321,5 +321,5 @@ function renderBreakdown(title: string, rows: Array<{ name: string; detail: stri
 }
 
 function format(value: number): string {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value);
 }

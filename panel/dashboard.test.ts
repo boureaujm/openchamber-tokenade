@@ -48,7 +48,7 @@ describe("dashboard panel state", () => {
 
   it("keeps a valid snapshot and marks it stale after refresh failure", () => {
     const loaded = reduceDashboardState(initialDashboardState(), { type: "success", snapshot, at: new Date(0) });
-    expect(formatUpdateNotice(loaded, "10:30")).toBe("Dernière actualisation : 10:30.");
+    expect(formatUpdateNotice(loaded, "10:30")).toBe("Last refreshed: 10:30.");
     const failed = reduceDashboardState(loaded, {
       type: "failure",
       error: { kind: "unavailable", message: "offline" },
@@ -56,7 +56,7 @@ describe("dashboard panel state", () => {
     expect(failed.snapshot).toBe(snapshot);
     expect(failed.stale).toBe(true);
     expect(failed.error?.kind).toBe("unavailable");
-    expect(formatUpdateNotice(failed, "10:30")).toBe("Dernier snapshot valide : 10:30. Les données peuvent être périmées.");
+    expect(formatUpdateNotice(failed, "10:30")).toBe("Last valid snapshot: 10:30. Data may be stale.");
   });
 
   it("classifies approval denial without claiming data loaded", async () => {
@@ -97,8 +97,8 @@ describe("dashboard panel state", () => {
     expect(snapshot.by_layer).toBeUndefined();
     expect(snapshot.per_op).toBeUndefined();
     expect(snapshotNotices(snapshot)).toEqual([
-      "Aucune opération enregistrée pour l’instant.",
-      "Aucun détail par couche ou opération dans ce snapshot.",
+      "No operations have been recorded yet.",
+      "No layer or operation details in this snapshot.",
     ]);
   });
 

@@ -64,18 +64,18 @@ export function initialDashboardState(): DashboardState {
 
 export function snapshotNotices(snapshot: DashboardSnapshot): string[] {
   const notices: string[] = [];
-  if (snapshot.operations === 0) notices.push("Aucune opération enregistrée pour l’instant.");
+  if (snapshot.operations === 0) notices.push("No operations have been recorded yet.");
   if (!snapshot.by_layer?.length && !snapshot.per_op?.length) {
-    notices.push("Aucun détail par couche ou opération dans ce snapshot.");
+    notices.push("No layer or operation details in this snapshot.");
   }
   return notices;
 }
 
-export function formatUpdateNotice(state: DashboardState, time = state.updatedAt?.toLocaleTimeString()): string | null {
+export function formatUpdateNotice(state: DashboardState, time = state.updatedAt?.toLocaleTimeString("en-US")): string | null {
   if (!time || !state.updatedAt) return null;
   return state.stale
-    ? `Dernier snapshot valide : ${time}. Les données peuvent être périmées.`
-    : `Dernière actualisation : ${time}.`;
+    ? `Last valid snapshot: ${time}. Data may be stale.`
+    : `Last refreshed: ${time}.`;
 }
 
 export function createDashboardPoller(
@@ -121,14 +121,14 @@ export function classifyDashboardError(error: unknown): DashboardError {
   const code = typeof error === "object" && error !== null && "code" in error
     ? String((error as { code: unknown }).code)
     : "";
-  if (code === "NO_SERVICE") return { kind: "approval", message: "Autorisez le service Tokenade dans Extensions pour charger les données." };
-  if (code === "DISABLED") return { kind: "disabled", message: "Réactivez l’extension Tokenade dans Extensions." };
-  if (code === "CLI_NOT_FOUND") return { kind: "cli-missing", message: "Tokenade CLI introuvable. Installez Tokenade ou vérifiez le PATH du service." };
-  if (code === "INVALID_JSON" || code === "INVALID_SNAPSHOT") return { kind: "invalid", message: "Le CLI a renvoyé des données invalides. Vérifiez sa version puis actualisez." };
+  if (code === "NO_SERVICE") return { kind: "approval", message: "Allow the Tokenade service in Extensions to load dashboard data." };
+  if (code === "DISABLED") return { kind: "disabled", message: "Enable the Tokenade extension in Extensions." };
+  if (code === "CLI_NOT_FOUND") return { kind: "cli-missing", message: "Tokenade CLI not found. Install Tokenade or check the service PATH." };
+  if (code === "INVALID_JSON" || code === "INVALID_SNAPSHOT") return { kind: "invalid", message: "The CLI returned invalid data. Check its version, then refresh." };
   if (["SERVICE_FAILED", "HOST_UNAVAILABLE", "HOST_TIMEOUT", "CLI_TIMEOUT"].includes(code)) {
-    return { kind: "unavailable", message: "Service Tokenade indisponible. Réessayez dans un instant." };
+    return { kind: "unavailable", message: "Tokenade service is unavailable. Try again shortly." };
   }
-  return { kind: "failed", message: error instanceof Error ? error.message : "Échec du chargement du dashboard." };
+  return { kind: "failed", message: "Dashboard load failed." };
 }
 
 export class DashboardRequestError extends Error {
