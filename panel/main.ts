@@ -11,6 +11,7 @@ import {
   type DashboardSnapshot,
   type DashboardState,
 } from "./dashboard";
+import { loadPreferences, normalizeAccent, parseRefreshSeconds, savePreferences } from "./settings";
 
 const host = connectHost();
 const root = document.querySelector<HTMLElement>("#app");
@@ -20,7 +21,7 @@ host.onReady((context) => {
   applyHostReady(context, document.documentElement);
   if (!mounted && root) {
     mounted = true;
-    mountDashboard(root);
+    void mountDashboard(root);
   }
 });
 
@@ -49,7 +50,9 @@ function parseBody(value: string): unknown {
   try { return JSON.parse(value); } catch { throw new DashboardRequestError("INVALID_JSON", "Service returned malformed JSON."); }
 }
 
-function mountDashboard(container: HTMLElement): void {
+async function mountDashboard(container: HTMLElement): Promise<void> {
+  let preferences = await loadPreferences(host.storage);
+  applyAccentOverride(preferences.accent);
   const layout = element("div", "dashboard");
   const header = element("header", "dashboard-header");
   const brand = element("div", "brand");
@@ -64,13 +67,76 @@ function mountDashboard(container: HTMLElement): void {
   refresh.type = "button";
   refresh.setAttribute("aria-label", "Refresh dashboard");
   refresh.append(refreshIcon(), refreshLabel);
+  const settingsButton = element("button", "refresh settings-toggle");
+  settingsButton.type = "button";
+  settingsButton.setAttribute("aria-label", "Settings");
+  settingsButton.setAttribute("aria-expanded", "false");
+  settingsButton.setAttribute("aria-controls", "tokenade-settings");
+  settingsButton.append(settingsIcon());
+  const settingsPanel = element("section", "settings-panel");
+  settingsPanel.id = "tokenade-settings";
+  settingsPanel.hidden = true;
+  settingsPanel.setAttribute("aria-labelledby", "settings-heading");
+  const settingsHeading = element("h2", undefined, "Settings");
+  settingsHeading.id = "settings-heading";
+  const settingsFields = element("div", "settings-fields");
+  const intervalInput = element("input");
+  intervalInput.type = "number";
+  intervalInput.min = "3";
+  intervalInput.max = "60";
+  intervalInput.step = "1";
+  intervalInput.inputMode = "numeric";
+  const intervalLabel = element("label", "settings-field");
+  intervalLabel.append(element("span", undefined, "Refresh interval (seconds)"), intervalInput);
+  const accentInput = element("input", "color-picker-input");
+  accentInput.type = "color";
+  accentInput.setAttribute("aria-label", "Choose accent color");
+  const colorPicker = element("div", "color-picker");
+  colorPicker.id = "tokenade-color-picker";
+  colorPicker.hidden = true;
+  colorPicker.setAttribute("role", "dialog");
+  colorPicker.setAttribute("aria-labelledby", "color-picker-heading");
+  const colorPickerHeading = element("h3", undefined, "Choose accent color");
+  colorPickerHeading.id = "color-picker-heading";
+  const colorPickerActions = element("div", "color-picker-actions");
+  const cancelColor = element("button", undefined, "Cancel");
+  cancelColor.type = "button";
+  const acceptColor = element("button", "accept-color", "OK");
+  acceptColor.type = "button";
+  colorPickerActions.append(cancelColor, acceptColor);
+  colorPicker.append(colorPickerHeading, accentInput, colorPickerActions);
+  const accentSwatch = element("button", "color-swatch");
+  accentSwatch.type = "button";
+  accentSwatch.setAttribute("aria-label", "Choose accent color");
+  accentSwatch.setAttribute("aria-labelledby", "accent-field-label");
+  accentSwatch.setAttribute("aria-haspopup", "dialog");
+  accentSwatch.setAttribute("aria-expanded", "false");
+  accentSwatch.setAttribute("aria-controls", colorPicker.id);
+  const accentControl = element("div", "color-control");
+  accentControl.append(accentSwatch, colorPicker);
+  const accentField = element("div", "settings-field");
+  const accentFieldLabel = element("span", undefined, "Click to choose color");
+  accentFieldLabel.id = "accent-field-label";
+  accentField.append(accentFieldLabel, accentControl);
+  settingsFields.append(intervalLabel, accentField);
+  const settingsMessage = element("p", "settings-message");
+  settingsMessage.setAttribute("role", "alert");
+  const settingsActions = element("div", "settings-actions");
+  const restoreAccent = element("button", undefined, "Restore default");
+  restoreAccent.type = "button";
+  const cancelSettings = element("button", undefined, "Cancel");
+  cancelSettings.type = "button";
+  const saveSettings = element("button", "save-settings", "Save");
+  saveSettings.type = "button";
+  settingsActions.append(restoreAccent, cancelSettings, saveSettings);
+  settingsPanel.append(settingsHeading, settingsFields, settingsMessage, settingsActions);
   const serviceStatus = element("div", "service-status");
   const serviceStatusDot = element("span", "service-status-dot");
   const serviceStatusText = element("span", undefined, "Checking service…");
   serviceStatus.setAttribute("role", "status");
   serviceStatus.setAttribute("aria-live", "polite");
   serviceStatus.append(serviceStatusDot, serviceStatusText);
-  actions.append(serviceStatus, refresh);
+  actions.append(serviceStatus, settingsButton, refresh);
   header.append(brand, actions);
   const privilege = element("aside", "privilege", "The local service runs with your account permissions. Its “tokenade” permission is informational, not a system sandbox.");
   const status = element("div", "status");
@@ -98,7 +164,7 @@ function mountDashboard(container: HTMLElement): void {
   const summary = element("section", "summary");
   summary.setAttribute("aria-label", "Indicateurs Tokenade");
   const breakdowns = element("section", "breakdowns");
-  layout.append(header, status, overview, summary, breakdowns, privilege);
+  layout.append(header, settingsPanel, status, overview, summary, breakdowns, privilege);
   container.replaceChildren(layout);
 
   let lastSnapshot: DashboardSnapshot | null = null;
@@ -122,8 +188,120 @@ function mountDashboard(container: HTMLElement): void {
     await client.refresh();
     await updateServiceStatus();
   };
+  const createPoller = () => createDashboardPoller(
+    refreshDashboard,
+    () => document.visibilityState === "visible",
+    preferences.refreshSeconds * 1_000,
+  );
+  let poller = createPoller();
+  let draftAccent = preferences.accent;
+  let pickerDirty = false;
+  const syncAccentColor = (syncPicker = true) => {
+    const color = draftAccent ?? resolveThemeAccent();
+    accentSwatch.style.backgroundColor = color;
+    if (syncPicker) accentInput.value = color;
+  };
+  const closeColorPicker = (accept: boolean, returnFocus = true) => {
+    if (accept) draftAccent = normalizeAccent(accentInput.value);
+    pickerDirty = false;
+    colorPicker.hidden = true;
+    accentSwatch.setAttribute("aria-expanded", "false");
+    syncAccentColor();
+    if (returnFocus) accentSwatch.focus();
+  };
+  const openColorPicker = () => {
+    syncAccentColor();
+    pickerDirty = false;
+    colorPicker.hidden = false;
+    accentSwatch.setAttribute("aria-expanded", "true");
+    accentInput.focus();
+  };
+  const closeSettings = () => {
+    if (!colorPicker.hidden) closeColorPicker(false, false);
+    settingsPanel.hidden = true;
+    settingsButton.setAttribute("aria-expanded", "false");
+    settingsButton.focus();
+  };
+  const openSettings = () => {
+    intervalInput.value = String(preferences.refreshSeconds);
+    draftAccent = preferences.accent;
+    syncAccentColor();
+    settingsMessage.textContent = "";
+    intervalInput.removeAttribute("aria-invalid");
+    settingsPanel.hidden = false;
+    settingsButton.setAttribute("aria-expanded", "true");
+    intervalInput.focus();
+  };
+  settingsButton.addEventListener("click", () => {
+    if (settingsPanel.hidden) openSettings();
+    else closeSettings();
+  });
+  accentInput.addEventListener("input", () => { pickerDirty = true; });
+  accentSwatch.addEventListener("click", () => {
+    if (colorPicker.hidden) openColorPicker();
+    else closeColorPicker(false);
+  });
+  cancelColor.addEventListener("click", () => closeColorPicker(false));
+  acceptColor.addEventListener("click", () => closeColorPicker(true));
+  colorPicker.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      closeColorPicker(false);
+    }
+  });
+  const dismissColorPickerOutside = (event: PointerEvent) => {
+    const target = event.target;
+    if (!colorPicker.hidden && target instanceof Node &&
+      !colorPicker.contains(target) && !accentSwatch.contains(target)) closeColorPicker(false, false);
+  };
+  document.addEventListener("pointerdown", dismissColorPickerOutside);
+  restoreAccent.addEventListener("click", () => {
+    draftAccent = undefined;
+    syncAccentColor();
+  });
+  const discardSettings = () => {
+    settingsMessage.textContent = "";
+    intervalInput.removeAttribute("aria-invalid");
+    closeSettings();
+  };
+  cancelSettings.addEventListener("click", discardSettings);
+  settingsPanel.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") discardSettings();
+  });
+  saveSettings.addEventListener("click", async () => {
+    const refreshSeconds = parseRefreshSeconds(intervalInput.value);
+    if (refreshSeconds === null) {
+      intervalInput.setAttribute("aria-invalid", "true");
+      settingsMessage.textContent = "Enter a whole number from 3 to 60 seconds.";
+      intervalInput.focus();
+      return;
+    }
+    const next = draftAccent ? { refreshSeconds, accent: draftAccent } : { refreshSeconds };
+    try {
+      await savePreferences(host.storage, next);
+    } catch {
+      settingsMessage.textContent = "Settings could not be saved. Your previous preferences are unchanged.";
+      return;
+    }
+    const intervalChanged = refreshSeconds !== preferences.refreshSeconds;
+    preferences = next;
+    applyAccentOverride(preferences.accent);
+    if (intervalChanged) {
+      poller.dispose();
+      poller = createPoller();
+      poller.sync();
+    }
+    closeSettings();
+  });
+  const themeObserver = new MutationObserver(() => {
+    if (settingsPanel.hidden || draftAccent !== undefined) return;
+    syncAccentColor(colorPicker.hidden || !pickerDirty);
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-oc-theme", "style"],
+  });
   refresh.addEventListener("click", () => { void refreshDashboard(); });
-  const poller = createDashboardPoller(refreshDashboard, () => document.visibilityState === "visible");
   const syncPolling = () => {
     poller.sync();
     if (document.visibilityState === "visible") void refreshDashboard();
@@ -131,6 +309,8 @@ function mountDashboard(container: HTMLElement): void {
   const disposePolling = () => {
     poller.dispose();
     document.removeEventListener("visibilitychange", syncPolling);
+    document.removeEventListener("pointerdown", dismissColorPickerOutside);
+    themeObserver.disconnect();
   };
   document.addEventListener("visibilitychange", syncPolling);
   window.addEventListener("pagehide", disposePolling, { once: true });
@@ -143,6 +323,37 @@ function markIcon(): SVGSVGElement {
 
 function refreshIcon(): SVGSVGElement {
   return svgIcon("M21 12a9 9 0 1 1-2.64-6.36 M21 3v6h-6");
+}
+
+function settingsIcon(): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "currentColor");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("fill-rule", "evenodd");
+  path.setAttribute("clip-rule", "evenodd");
+  path.setAttribute("d", "M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z");
+  svg.append(path);
+  return svg;
+}
+
+function applyAccentOverride(accent?: string): void {
+  if (accent) document.documentElement.style.setProperty("--tk-accent", accent);
+  else document.documentElement.style.removeProperty("--tk-accent");
+}
+
+function resolveThemeAccent(): string {
+  const probe = document.createElement("span");
+  probe.style.color = "var(--tk-theme-accent)";
+  document.body.append(probe);
+  const color = getComputedStyle(probe).color;
+  probe.remove();
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return "#3ddc97";
+  context.fillStyle = color;
+  return normalizeAccent(context.fillStyle) ?? "#3ddc97";
 }
 
 function svgIcon(d: string): SVGSVGElement {

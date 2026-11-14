@@ -1,4 +1,4 @@
-export const REFRESH_INTERVAL_MS = 30_000;
+export const DEFAULT_REFRESH_INTERVAL_MS = 5_000;
 
 export type ServiceStatus = "stopped" | "starting" | "ready" | "failed";
 
@@ -81,6 +81,7 @@ export function formatUpdateNotice(state: DashboardState, time = state.updatedAt
 export function createDashboardPoller(
   refresh: () => Promise<void>,
   isActive: () => boolean,
+  intervalMs = DEFAULT_REFRESH_INTERVAL_MS,
   schedule: typeof setInterval = setInterval,
   cancel: typeof clearInterval = clearInterval,
 ) {
@@ -91,7 +92,7 @@ export function createDashboardPoller(
     if (isActive()) {
       timer = schedule(() => {
         if (isActive()) void refresh();
-      }, REFRESH_INTERVAL_MS);
+      }, intervalMs);
     }
   };
   const dispose = () => {
