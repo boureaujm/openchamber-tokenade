@@ -12,7 +12,7 @@
 
 ## 3. Settings interface
 
-- [ ] 3.1 Split `--tk-status-ready` from `--tk-accent` for the ready dot and add the settings form, gear, compact color swatch/popover, and narrow-width styles in `panel/index.html`; verify `bun run build` succeeds and the panel renders in light and dark themes at wide and narrow widths
+- [ ] 3.1 Use `--tk-accent` for the ready dot and halo, keep warning/error indicators semantic, and add the settings form, gear, compact color swatch/popover, and narrow-width styles in `panel/index.html`; verify `bun run build` succeeds and the panel renders in light and dark themes at wide and narrow widths
 - [ ] 3.2 Build the gear toggle, draft form, Save/Cancel/Escape, interval validation message, accent application, theme-accent updates, explicit color-picker OK/Cancel/outside cancellation, and Restore default in `panel/main.ts`; verify in OpenChamber that values survive a panel reload and that invalid interval and canceled color choices keep previous values
 - [ ] 3.3 Load stored preferences before starting the poller and rebuild the poller when the saved interval changes; verify only one immediate refresh runs on open and a changed interval takes effect without reloading
 - [x] 3.4 Document the panel settings, 5-second default, storage scope, and accent/status separation in `AGENTS.md`; verify the documented defaults match `panel/settings.ts`

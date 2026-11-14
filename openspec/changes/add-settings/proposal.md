@@ -10,7 +10,7 @@ The panel hard-codes a 30-second refresh interval and derives its accent colour 
 - Add an adjustable refresh interval, in seconds, defaulting to 5 seconds instead of the current fixed 30 seconds.
 - Add an accent colour picker whose default swatch follows the current theme, with explicit **OK** / **Cancel** and click-away cancellation, plus **Restore default** to remove the override.
 - Persist the accent override and refresh interval with the host's extension storage so they survive panel reloads.
-- Separate the decorative accent from the semantic success colour used by the service-ready indicator, so a custom accent never changes status meaning.
+- Color the ready-status dot and halo with the configured accent; keep the **Service is running** label neutral and warning/error indicators semantic.
 - Validate interval input and report invalid values without saving them.
 
 No manifest, service, or SDK dependency changes; the fixed `tokenade dashboard --json` command and the local-service boundary stay as they are.

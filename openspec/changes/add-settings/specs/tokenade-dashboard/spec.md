@@ -33,7 +33,7 @@ The dashboard SHALL load a snapshot when opened, refresh it periodically at the 
 
 ### Requirement: Follow the OpenChamber theme and viewport
 
-The dashboard SHALL use the host-provided theme and remain usable within narrow panel widths, and a configured accent SHALL affect only decorative elements.
+The dashboard SHALL use the host-provided theme and remain usable within narrow panel widths. A configured accent SHALL affect decorative elements and the ready-status dot, while the status label remains neutral and warning/error indicators retain semantic host colors.
 
 #### Scenario: Host theme changes
 
@@ -48,7 +48,7 @@ The dashboard SHALL use the host-provided theme and remain usable within narrow 
 #### Scenario: Custom accent is active
 
 - **WHEN** a saved accent override exists
-- **THEN** decorative accents use it while semantic status indicators keep the host success, warning, and error colors
+- **THEN** decorative accents and the ready dot use it while the **Service is running** label stays neutral and warning/error indicators keep host semantic colors
 
 ## ADDED Requirements
 

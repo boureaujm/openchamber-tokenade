@@ -54,9 +54,9 @@ The panel renders with defaults, then reads storage once and applies the stored 
 
 CSS keeps `--tk-theme-accent` tied to the current host success token (with the light theme's existing override) and makes `--tk-accent` reference it. A saved accent sets `--tk-accent` inline; `main.ts` resolves the default from `--tk-theme-accent` through a probe element and canvas normalization, without removing the saved override. A root attribute observer refreshes the open swatch when host theme tokens or mode change, but leaves saved and in-progress custom colors alone. If normalization fails, the picker falls back to `#3ddc97`.
 
-### Split semantic status from decorative accent
+### Accent the ready indicator
 
-Add `--tk-status-ready` (host success colour) and use it for the ready dot. `--tk-accent` keeps the brand mark, hero value, savings ring, breakdown bars, and focus ring. A red or blue accent therefore never changes what "ready" means.
+`--tk-accent` colors the ready dot and halo along with the brand mark, hero value, savings ring, breakdown bars, and focus ring. The **Service is running** label stays neutral; starting, stopped, and failed indicators retain host warning/error colors.
 
 ### Settings form interaction
 
