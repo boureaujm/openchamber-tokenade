@@ -15,7 +15,6 @@
   --tk-border: var(--interactive-border, var(--oc-border, #1f2933));
 --tk-theme-accent: var(--status-success, var(--oc-success, #3ddc97));
 --tk-accent: var(--tk-theme-accent);
---tk-status-ready: var(--status-success, var(--oc-success, #3ddc97));
   --tk-accent-soft: #0f2219;
   --tk-accent-soft: color-mix(in srgb, var(--tk-accent) 11%, var(--tk-surface));
   --tk-warning: var(--status-warning, var(--oc-warning, #d6a54e));
@@ -39,7 +38,7 @@ h1 { margin: 0; font-size: 1.06rem; font-weight: 600; line-height: 1.25; letter-
 .header-actions { justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .service-status { display: inline-flex; align-items: center; gap: 7px; color: var(--tk-muted); font-size: .75rem; white-space: nowrap; }
 .service-status-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--tk-muted); }
-.service-status[data-state="ready"] .service-status-dot { background: var(--tk-status-ready); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-status-ready) 16%, transparent); }
+.service-status[data-state="ready"] .service-status-dot { background: var(--tk-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-accent) 16%, transparent); }
 .service-status[data-state="starting"] .service-status-dot { background: var(--tk-warning); }
 .service-status[data-state="stopped"] .service-status-dot, .service-status[data-state="failed"] .service-status-dot { background: var(--tk-error); }
 .refresh { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 7px 12px; border: 1px solid var(--tk-border); border-radius: 9px; background: var(--tk-surface); color: var(--tk-fg); cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease; }
