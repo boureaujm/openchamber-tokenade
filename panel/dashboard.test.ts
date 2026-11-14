@@ -9,7 +9,7 @@ import {
   formatTokens,
   formatPercent,
   initialDashboardState,
-  REFRESH_INTERVAL_MS,
+  DEFAULT_REFRESH_INTERVAL_MS,
   reduceDashboardState,
   snapshotNotices,
   serviceStatusLabel,
@@ -103,7 +103,7 @@ describe("dashboard panel state", () => {
   });
 
   it("uses the specified polling interval and classifies a disabled service", async () => {
-    expect(REFRESH_INTERVAL_MS).toBe(30_000);
+    expect(DEFAULT_REFRESH_INTERVAL_MS).toBe(5_000);
     const client = createDashboardClient(async () => { throw new DashboardRequestError("DISABLED", "disabled"); }, () => {});
     await client.refresh();
     expect(client.getState().error?.kind).toBe("disabled");
@@ -127,18 +127,18 @@ describe("dashboard panel state", () => {
     expect(root.dataset.ocTheme).toBe("dark");
   });
 
-  it("polls every 30 seconds only while the panel is active", async () => {
+  it("polls every 5 seconds only while the panel is active", async () => {
     let active = true;
     let ticks = 0;
     let clears = 0;
     let tick: (() => void) | undefined;
     const schedule = ((callback: TimerHandler, delay?: number) => {
-      expect(delay).toBe(30_000);
+      expect(delay).toBe(5_000);
       tick = callback as () => void;
       return 1;
     }) as typeof setInterval;
     const cancel = (() => { clears += 1; }) as typeof clearInterval;
-    const poller = createDashboardPoller(async () => { ticks += 1; }, () => active, schedule, cancel);
+    const poller = createDashboardPoller(async () => { ticks += 1; }, () => active, DEFAULT_REFRESH_INTERVAL_MS, schedule, cancel);
     poller.sync();
     tick?.();
     await Promise.resolve();
@@ -150,5 +150,20 @@ describe("dashboard panel state", () => {
     expect(clears).toBe(1);
     expect(ticks).toBe(1);
     poller.dispose();
+  });
+
+  it("uses a custom polling interval and dispose clears its timer", () => {
+    let delay = 0;
+    let cleared = 0;
+    const schedule = ((_callback: TimerHandler, interval?: number) => {
+      delay = interval ?? 0;
+      return 1;
+    }) as typeof setInterval;
+    const cancel = (() => { cleared += 1; }) as typeof clearInterval;
+    const poller = createDashboardPoller(async () => {}, () => true, 12_000, schedule, cancel);
+    poller.sync();
+    expect(delay).toBe(12_000);
+    poller.dispose();
+    expect(cleared).toBe(1);
   });
 });

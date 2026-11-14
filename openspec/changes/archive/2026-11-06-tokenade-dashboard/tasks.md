@@ -12,4 +12,4 @@
 ## 3. Package integration
 
 - [x] 3.1 Declare the service and its `tokenade` executable permission in the manifest, and update the Bun build script to emit the panel and Node service bundles. Verify `bun run build` succeeds, both entry files exist, and the SDK accepts the manifest.
-- [ ] 3.2 Install the built extension in a supported OpenChamber host and verify the approval warning, approval-denied state, successful snapshot, missing-CLI error, manual refresh, and narrow-panel layout; confirm the generated package contains all declared entries.
+- [x] 3.2 Install the built extension in a supported OpenChamber host and verify the approval warning, approval-denied state, successful snapshot, missing-CLI error, manual refresh, and narrow-panel layout; confirm the generated package contains all declared entries.
