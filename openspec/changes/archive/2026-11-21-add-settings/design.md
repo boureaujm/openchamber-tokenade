@@ -6,16 +6,16 @@ See `proposal.md` - Why.
 
 The panel is plain DOM built in `panel/main.ts`; `panel/dashboard.ts` holds the testable state machine, snapshot validation, and the poller, and is covered by `panel/dashboard.test.ts` with `bun:test`. `panel/index.html` defines the `--tk-*` tokens, where `--tk-accent` currently resolves from the host's semantic `--status-success` and feeds both decorative accents and the "service ready" dot.
 
-The panel runs in a sandboxed iframe with no settings contribution in the SDK. `connectHost()` exposes `storage.get/set/delete/keys`, described by the SDK as device-scoped extension preference data partitioned by host identity and installation. The SDK UI kit has no colour picker, so the form uses native form controls.
+The panel runs in a sandboxed iframe with no settings contribution in the SDK. `connectHost()` exposes `storage.get/set/delete/keys`, described by the SDK as device-scoped extension preference data partitioned by host identity and installation. The SDK UI kit has no colour picker, so the form uses native form controls. The Tokenade CLI is a mandatory runtime dependency on the service host; the OpenChamber SDK is used at build time and bundled into the panel/service output.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Panel-local settings with a gear toggle, English copy, and no host/SDK changes.
+- Panel-local settings with a gear toggle, English copy, and no host API or service changes.
 - Refresh interval configurable between 3 and 60 whole seconds, default 5, applied without reload.
 - Accent override initialized from the theme-resolved accent, persisted, and resettable.
-- Semantic status colours stay independent of the accent.
+- The ready dot follows the configured accent; warning and error indicators keep semantic host colours.
 - Preference parsing and persistence testable without a DOM or a live host.
 
 **Non-Goals:**
@@ -24,7 +24,11 @@ The panel runs in a sandboxed iframe with no settings contribution in the SDK. `
 - Per-project preferences.
 - Alpha or gradient accents; `input type="color"` yields opaque `#rrggbb` only.
 - Live preview while typing; the form commits on Save.
-- Changing the manifest, the local service, or the fixed CLI command.
+- Changing the service contribution, permissions, or fixed CLI command.
+
+### Build dependency boundary
+
+Keep the OpenChamber SDK in `devDependencies`: the build bundles it into the panel and Node service outputs. The Tokenade CLI is not bundled and remains a required executable on the service host's `PATH`.
 
 ## Decisions
 

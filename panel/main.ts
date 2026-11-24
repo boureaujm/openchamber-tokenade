@@ -69,7 +69,7 @@ async function mountDashboard(container: HTMLElement): Promise<void> {
   refresh.append(refreshIcon(), refreshLabel);
   const settingsButton = element("button", "refresh settings-toggle");
   settingsButton.type = "button";
-  settingsButton.setAttribute("aria-label", "Settings");
+  settingsButton.setAttribute("aria-label", "Tokenade dashboard settings");
   settingsButton.setAttribute("aria-expanded", "false");
   settingsButton.setAttribute("aria-controls", "tokenade-settings");
   settingsButton.append(settingsIcon());
@@ -101,6 +101,7 @@ async function mountDashboard(container: HTMLElement): Promise<void> {
   const colorPickerActions = element("div", "color-picker-actions");
   const cancelColor = element("button", undefined, "Cancel");
   cancelColor.type = "button";
+  cancelColor.setAttribute("aria-label", "Cancel color selection");
   const acceptColor = element("button", "accept-color", "OK");
   acceptColor.type = "button";
   colorPickerActions.append(cancelColor, acceptColor);

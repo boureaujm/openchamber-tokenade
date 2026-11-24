@@ -5,31 +5,33 @@
   "type": "module",
   "description": "Visual OpenChamber extension for Tokenade dashboard output.",
   "dependencies": {
-    "@fission-ai/openspec": "^1.16.0",
-    "@openchamber/sdk": "^1.24.0"
+    "@fission-ai/openspec": "^1.16.0"
   },
-"scripts": {
-"build": "bunx openchamber-guest-bundle panel/main.ts panel/main.js && bunx openchamber-guest-bundle --node service/main.ts service/main.js"
-},
+  "scripts": {
+    "build": "bunx openchamber-guest-bundle panel/main.ts panel/main.js && bunx openchamber-guest-bundle --node service/main.ts service/main.js"
+  },
   "openchamber": {
     "apiVersion": 1,
     "engines": {
       "openchamber": ">=1.24.0"
     },
     "contributes": {
-"panel": {
-"id": "tokenade-dashboard",
-"name": "Tokenade",
-"icon": "icon.svg",
-"entry": "panel/index.html"
-},
-"service": {
-"entry": "service/main.js",
-"runtime": "host",
-"permissions": {
-"exec": ["tokenade"]
-}
-}
+      "panel": {
+        "id": "tokenade-dashboard",
+        "name": "Tokenade",
+        "icon": "icon.svg",
+        "entry": "panel/index.html"
+      },
+      "service": {
+        "entry": "service/main.js",
+        "runtime": "host",
+        "permissions": {
+          "exec": ["tokenade"]
+        }
+      }
     }
+  },
+  "devDependencies": {
+    "@openchamber/sdk": "^1.24.0"
   }
 }
