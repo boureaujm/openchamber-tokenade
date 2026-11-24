@@ -2,10 +2,18 @@
 
 OpenChamber extension for viewing locally recorded Tokenade savings and cache statistics.
 
+## Requirements
+
+- Tokenade CLI is a mandatory external dependency. Install Tokenade on the host running the OpenChamber service and ensure `tokenade` is on that service's `PATH`; without it, dashboard requests cannot work.
+- OpenChamber `1.24.0` or later.
+
 ## Features
 
 - View token savings, savings rate, operation counts, and cache hit metrics.
 - Explore breakdowns by layer and operation when the CLI provides them.
+- Refresh on demand or automatically while the panel is visible; the default interval is 5 seconds and can be set from 3 to 60 seconds.
+- Customize the accent with the color swatch. The default follows the host theme; color choices require **OK** then **Save**, while **Cancel**, Escape, or clicking outside discards a candidate. **Restore default** removes the override.
+- The ready dot follows the accent; warning and error indicators retain their semantic host colors.
 - Refresh on demand or automatically while the panel is visible.
 
 ## Install in OpenChamber
@@ -32,6 +40,11 @@ bun run build
 ```
 
 The build regenerates `panel/main.js` and `service/main.js`; edit their TypeScript sources instead of the generated bundles.
+`@openchamber/sdk` is a dev dependency used by the bundler; its code is included in the generated bundles.
+
+## How it works
+
+The panel requests one-shot JSON snapshots and polls at the configured interval while visible. Preferences use device-scoped host storage. The service normalizes the CLI's `cache_hit_rate` field to `hit_rate` for the panel.
 
 ## How it works
 
