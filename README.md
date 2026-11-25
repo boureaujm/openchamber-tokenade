@@ -5,11 +5,9 @@ OpenChamber extension for viewing locally recorded Tokenade savings and cache st
 ## Screenshots
 
 <p align="center">
-  <img src="docs/panel.png" alt="Tokenade dashboard in dark theme; usage figures masked" width="48%">
-  <img src="docs/panel-light.png" alt="Tokenade dashboard in light theme; usage figures masked" width="48%">
+  <img src="docs/panel.png" alt="Tokenade dashboard in dark theme" width="48%">
+  <img src="docs/panel-light.png" alt="Tokenade dashboard in light theme" width="48%">
 </p>
-
-Usage figures are masked for privacy.
 
 ## Requirements
 
